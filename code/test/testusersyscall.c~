@@ -1,0 +1,19 @@
+#include "syscall.h"
+
+void  test() {
+  
+}
+
+void main() {
+  //test Exec
+  
+  //test Fork
+  
+  //test Yield
+  
+  //Join
+  
+  //Exit
+
+
+}
