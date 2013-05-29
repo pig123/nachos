@@ -170,7 +170,10 @@ Thread::Finish ()
     ASSERT(this == currentThread);
     
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
-    
+#ifdef USER_PROGRAM
+    if (currentThread->space != NULL) 
+      delete currentThread->space;
+#endif    
     threadToBeDestroyed = currentThread;
     //printf("In Thread::Finish %d %s\n",currentThread->getThreadid(),currentThread->getName());
       Sleep();					// invokes SWITCH
