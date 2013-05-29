@@ -1,7 +1,0 @@
-ThreadPool::ThreadPool() {
-  count =0;
-  threadList = new List;
-}
-Thread *getThreadById(int id) {
-  return (Thread *)threadList->getElementByKey(id);
-}
