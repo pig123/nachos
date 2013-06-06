@@ -99,7 +99,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 // and the stack segment
     
 //we get the size of the program.
-    currentThread->p_memory = memlink->mem_malloc(size);
+//    currentThread->p_memory = memlink->mem_malloc(size);
     
     //bzero(machine->mainMemory, size);
     int bsize = 0;
@@ -107,12 +107,12 @@ AddrSpace::AddrSpace(OpenFile *executable)
       // 
       bsize = size-4096;
     }
-    fwrite(machine->fpMemory,bsize,);
+    //    fwrite(machine->fpMemory,bsize,);
     
     
     
 // then, copy in the code and data segments into memory
-    /*
+    
     if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
@@ -125,8 +125,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
     }
-    */
     
+
+    /*
     if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
@@ -139,7 +140,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
         executable->ReadAt(&(currentThread->p_memory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
     }
-
+    */
 }
 
 //----------------------------------------------------------------------

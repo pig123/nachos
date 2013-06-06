@@ -43,12 +43,54 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
 { 
     numBytes = fileSize;
     numSectors  = divRoundUp(fileSize, SectorSize);
-    if (freeMap->NumClear() < numSectors)
+    int offnum;
+	int i;
+	
+	if (freeMap->NumClear() < numSectors)
 	return FALSE;		// not enough space
+	
+	if (numSectors > 958) {
+	  return FALSE; //the 958 is too big
+	}
 
-    for (int i = 0; i < numSectors; i++)
-	dataSectors[i] = freeMap->Find();
-    return TRUE;
+	for (i =0; i < numSectors; i ++) {
+	  if (i < 28) {
+		dataSectors.orgin[i] = freeMap->Find();
+	  }else {
+		break;
+	  }
+	}
+	offnum = numSectors - i;
+	if (offnum >0){
+	  dataSectors.firstindex = new IndexSectorFirst();
+	  for (int i =0;i < offnum;i ++) {
+		if (i < 30)
+		  dataSectors.firstindex->index[i] = freeMap->Find();
+		else 
+		  {
+			break;
+		  }
+	  }
+	  offnum = offnum - i;
+	  //now the size is greater then 58
+	  
+	  if (offnum > 0) {
+		//we need indexsectorsecond;
+		dataSectors.secondindex = new IndexSectorSecond();
+		int j = 0 ;
+		j = offnum/30;
+		for (i =0;i < j ; i ++) {
+		  dataSectors.secondindex.indexsecond[i] = new IndexSectorFirst();
+		  for (int m =0;m < 30;m ++) {
+			dataSectors.secondindex.indexsecond[i].index[m] = freeMap->Find();
+			offnum = offnum - 1;
+			if (offnum >0)continue;
+			else break;
+		  }
+		}
+	  }
+	}
+	return TRUE;
 }
 
 //----------------------------------------------------------------------
@@ -61,10 +103,38 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
 void 
 FileHeader::Deallocate(BitMap *freeMap)
 {
+  /*
     for (int i = 0; i < numSectors; i++) {
 	ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
 	freeMap->Clear((int) dataSectors[i]);
     }
+  */
+	//we also need to update this function.
+	int i;
+	int j;
+	int tmp;
+	tmp = numSectors;
+	for (i =0;i < tmp;i ++) {
+	  freeMap->Clear((int)dataSectors.orgin[i]);
+	}
+	tmp = tmp-i;
+	if (tmp > 0) {
+	  for (i =0;i  < tmp;i ++) {
+		freeMap->Clear((int)dataSectors.firstindex.index[i]);
+	  }
+	  tmp = tmp-i;
+	  if (tmp>0) {
+		j = tmp/30;
+		for (i =0;i < j ; i ++) {
+		  for (int m =0;m < 30;m ++) {
+			freeMap->Clear((int)dataSectors.secondindex.indexsecond[i].index[m]);
+			tmp = tmp-1;
+			if (tmp >0)continue;
+			else break;
+		  }
+		}
+	  }
+	}
 }
 
 //----------------------------------------------------------------------
@@ -106,7 +176,19 @@ FileHeader::WriteBack(int sector)
 int
 FileHeader::ByteToSector(int offset)
 {
-    return(dataSectors[offset / SectorSize]);
+    
+  //return(dataSectors[offset / SectorSize]);
+  int num;
+  num = offset/SectorSize;
+  if (num<=28) {
+	return dataSectors.orgin[num];
+  } else if (num > 28 && num < 58) {
+	return dataSectors.firstindex->index[num-28];
+  } else {
+	int j;
+	j = (num - 58) / 30;
+	return dataSectors.secondindex->indexsecond[j]->index[(num-58)%30];
+  }
 }
 
 //----------------------------------------------------------------------
@@ -131,7 +213,7 @@ FileHeader::Print()
 {
     int i, j, k;
     char *data = new char[SectorSize];
-
+	/*
     printf("FileHeader contents.  File size: %d.  File blocks:\n", numBytes);
     for (i = 0; i < numSectors; i++)
 	printf("%d ", dataSectors[i]);
@@ -147,4 +229,5 @@ FileHeader::Print()
         printf("\n"); 
     }
     delete [] data;
+	*/
 }

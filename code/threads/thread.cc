@@ -84,7 +84,7 @@ Thread::~Thread()
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
     //free the memory
-    memlink->mem_free(this->p_memory);
+    //memlink->mem_free(this->p_memory);
 }
 
 //----------------------------------------------------------------------

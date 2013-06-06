@@ -35,12 +35,28 @@
 //	"size" is the number of entries in the directory
 //----------------------------------------------------------------------
 
-Directory::Directory(int size)
+Directory::Directory()
 {
+  /*
     table = new DirectoryEntry[size];
     tableSize = size;
     for (int i = 0; i < tableSize; i++)
 	table[i].inUse = FALSE;
+  */
+  //we init the Directory.
+  root = new DirectoryEntry();
+  //we add two file . .. in the root dir.
+  root->inUse = False;
+  root->name = "root";
+  root->type = 1;
+  root->leftchild = NULL;
+  root->rightchild = NULL;
+  root->parentdir = root;
+  root->parententry = root;
+  int type = 0;
+  //if we init, we need this two file.
+  Add("/.",type,3);
+  Add("/..",type,3);
 }
 
 //----------------------------------------------------------------------
@@ -123,23 +139,93 @@ Directory::Find(char *name)
 //	additional file names.
 //
 //	"name" -- the name of the file being added
+//  "type" --  two point if add is a dir or a file.
 //	"newSector" -- the disk sector containing the added file's header
 //----------------------------------------------------------------------
 
 bool
-Directory::Add(char *name, int newSector)
+Directory::Add(char *name, int type ,int newSector)
 { 
-    if (FindIndex(name) != -1)
+  char *tmp_name = (char *)malloc(strlen(name));
+  strcpy(tmp_name, name);
+  DirectoryEntry *current_path = GetCurrentPath(name);
+  DirectoryEntry *parent_path = GetParentPath(name);
+  DirectoryEntry *current;
+  char *filename = GetFileName(name);
+  if (type == 1) {
+	//add a dir
+	DirectoryEntry *dir = new DirectoryEntry();//
+	DirectoryEntry *tmp;
+	tmp = current_path->leftchild;
+	while(tmp->rightchild!=NULL)tmp = tmp->rightchild;
+	
+	dir->name = tmp_name;
+	dir->leftchild = NULL;
+	dir->rightchild = NULL;
+	dir->parentdir = NULL;
+	tmp->rightchild = dir;
+	dir->parent = tmp;
+	
+	char tmp_path[1024];
+	memset(tmp_path, 0,1024);
+	sprintf(tmp_path,"%s%s",name,"/.");
+	Add(tmp_path, 0, newSector);
+	memset(tmp_path,0,1024);
+	sprintf(tmp_path,"%s%s",name,"/..");
+	Add(tmp_path,0,newSector);
+  } else if (type == 0) {
+    //add a file
+	if (filename == '.') {
+	  current = new DirectoryEntry();
+	  current->type = 0;
+	  current->name = tmp_name;
+	  current->leftchild = NULL;
+	  current->rightchild = NULL;
+	  current->parentdir = current_path;
+	  current_path->leftchild = current;
+	  current->parent = current_path;
+	  
+	} else if (filename == "..") {
+	  current = new DirectoryEntry();
+	  current->type = 0;
+	  current->name = tmp_name;
+	  current->rightchild = NULL;
+	  current->leftchild = NULL;
+	  current->parentdir = parent_path;
+	  current_path->leftchild->rightchild = current;
+	  current->parent = current_path->leftchild;
+	} else {
+	  //other files.
+	  if (FindIndex(name)!= -1) return FALSE;
+	  current = new DirectoryEntry();
+	  DirectoryEntry *tmp;
+	  current->type = 0;
+	  current->name = tmp_name;
+	  current->rightchild = NULL;
+	  current->leftchild = NULL;
+	  current->parentdir = NULL;
+	  while(tmp->rightchild != NULL) tmp = tmp->rightchild;
+	  tmp->rightchild = current;
+	  current->parent = tmp;
+	}
+	/*
+	if (FindIndex(name) != -1)
 	return FALSE;
-
+    int filenamelen = strlen(name);
+    
     for (int i = 0; i < tableSize; i++)
         if (!table[i].inUse) {
             table[i].inUse = TRUE;
-            strncpy(table[i].name, name, FileNameMaxLen); 
-            table[i].sector = newSector;
+            table[i].name = (char *)malloc(filenamelen+1);
+	    strncpy(table[i].name,name, filenamelen);
+	    //strncpy(table[i].name, name, FileNameMaxLen); 
+            
+	    table[i].sector = newSector;
         return TRUE;
 	}
     return FALSE;	// no space.  Fix when we have extensible files.
+	*/
+   }
 }
 
 //----------------------------------------------------------------------
@@ -148,17 +234,21 @@ Directory::Add(char *name, int newSector)
 //	return FALSE if the file isn't in the directory. 
 //
 //	"name" -- the file name to be removed
+//  "type" -- the type, type==1 dir, type==0 file
 //----------------------------------------------------------------------
 
 bool
-Directory::Remove(char *name)
+Directory::Remove(char *name, int type)
 { 
+  /*
     int i = FindIndex(name);
 
     if (i == -1)
 	return FALSE; 		// name not in directory
     table[i].inUse = FALSE;
     return TRUE;	
+  */
+  
 }
 
 //----------------------------------------------------------------------
